@@ -49,6 +49,7 @@ public class SystemSettings extends SettingsPreferenceFragment implements
     private ListPreference mFontSizePref;
     private PreferenceScreen mPhoneDrawer;
     private PreferenceScreen mTabletDrawer;
+    private PreferenceScreen mNavigationBar;
 
     private CheckBoxPreference mNavbarLeftPref;
 
@@ -64,6 +65,7 @@ public class SystemSettings extends SettingsPreferenceFragment implements
         mFontSizePref.setOnPreferenceChangeListener(this);
         mPhoneDrawer = (PreferenceScreen) findPreference(KEY_NOTIFICATION_DRAWER);
         mTabletDrawer = (PreferenceScreen) findPreference(KEY_NOTIFICATION_DRAWER_TABLET);
+        mNavigationBar = (PreferenceScreen) findPreference(KEY_NAVIGATION_BAR);
 
         mNavbarLeftPref = (CheckBoxPreference) findPreference(KEY_NAVIGATION_BAR_LEFT);
         mNavbarLeftPref.setChecked((Settings.System.getInt(getContentResolver(),
@@ -72,6 +74,9 @@ public class SystemSettings extends SettingsPreferenceFragment implements
         if (Utils.isTablet(getActivity())) {
             if (mPhoneDrawer != null) {
                 getPreferenceScreen().removePreference(mPhoneDrawer);
+            }
+            if (mNavigationBar != null) {
+                getPreferenceScreen().removePreference(mNavigationBar);
             }
         } else {
             if (mTabletDrawer != null) {
