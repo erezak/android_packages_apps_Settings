@@ -45,11 +45,13 @@ public class SystemSettings extends SettingsPreferenceFragment implements
     private static final String KEY_NAVIGATION_BAR = "navigation_bar";
     private static final String KEY_HARDWARE_KEYS = "hardware_keys";
     private static final String KEY_NAVIGATION_BAR_LEFT = "navigation_bar_left"; // temp. To be moved in to the navbar settings.
+    private static final String KEY_NAVIGATION_BAR_BUTTONS = "navigation_bar_buttons";
 
     private ListPreference mFontSizePref;
     private PreferenceScreen mPhoneDrawer;
     private PreferenceScreen mTabletDrawer;
     private PreferenceScreen mNavigationBar;
+    private PreferenceScreen mNavigationBarButtons;
 
     private CheckBoxPreference mNavbarLeftPref;
 
@@ -66,6 +68,7 @@ public class SystemSettings extends SettingsPreferenceFragment implements
         mPhoneDrawer = (PreferenceScreen) findPreference(KEY_NOTIFICATION_DRAWER);
         mTabletDrawer = (PreferenceScreen) findPreference(KEY_NOTIFICATION_DRAWER_TABLET);
         mNavigationBar = (PreferenceScreen) findPreference(KEY_NAVIGATION_BAR);
+        mNavigationBarButtons = (PreferenceScreen) findPreference(KEY_NAVIGATION_BAR_BUTTONS);
 
         mNavbarLeftPref = (CheckBoxPreference) findPreference(KEY_NAVIGATION_BAR_LEFT);
         mNavbarLeftPref.setChecked((Settings.System.getInt(getContentResolver(),
@@ -75,8 +78,11 @@ public class SystemSettings extends SettingsPreferenceFragment implements
             if (mPhoneDrawer != null) {
                 getPreferenceScreen().removePreference(mPhoneDrawer);
             }
-            if (mNavigationBar != null) {
-                getPreferenceScreen().removePreference(mNavigationBar);
+            if (mNavigationBarButtons != null) {
+                getPreferenceScreen().removePreference(mNavigationBarButtons);
+            }
+            if (mNavbarLeftPref != null) {
+                getPreferenceScreen().removePreference(mNavbarLeftPref);
             }
         } else {
             if (mTabletDrawer != null) {
@@ -88,9 +94,10 @@ public class SystemSettings extends SettingsPreferenceFragment implements
                 ServiceManager.getService(Context.WINDOW_SERVICE));
         try {
             if (!windowManager.hasNavigationBar()) {
-                Preference naviBar = findPreference(KEY_NAVIGATION_BAR);
-                if (naviBar != null) {
-                    getPreferenceScreen().removePreference(naviBar);
+                if (mNavigationBarButtons != null) {
+                    getPreferenceScreen().removePreference(mNavigationBarButtons);
+                }
+                if (mNavbarLeftPref != null) {
                     getPreferenceScreen().removePreference(mNavbarLeftPref);
                 }
             } else {

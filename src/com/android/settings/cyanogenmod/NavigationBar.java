@@ -40,6 +40,13 @@ public class NavigationBar extends SettingsPreferenceFragment implements OnPrefe
     private static final String KEY_BACK_ENABLED = "key_back_enabled";
     private static final String KEY_HOME_ENABLED = "key_home_enabled";
 
+    private static final int KEY_MASK_HOME = 0x01;
+    private static final int KEY_MASK_BACK = 0x02;
+    private static final int KEY_MASK_MENU = 0x04;
+    private static final int KEY_MASK_ASSIST = 0x08;
+    private static final int KEY_MASK_APP_SWITCH = 0x10;
+ 
+    
     private CheckBoxPreference mNavigationBarShow;
     private CheckBoxPreference mMenuKeyEnabled;
     private CheckBoxPreference mBackKeyEnabled;
@@ -52,6 +59,14 @@ public class NavigationBar extends SettingsPreferenceFragment implements OnPrefe
         super.onCreate(savedInstanceState);
 
         addPreferencesFromResource(R.xml.navigation_bar);
+
+        final int deviceKeys = getResources().getInteger(
+                com.android.internal.R.integer.config_deviceHardwareKeys);
+        final boolean hasHomeKey = (deviceKeys & KEY_MASK_HOME) != 0;
+        final boolean hasBackKey = (deviceKeys & KEY_MASK_BACK) != 0;
+        final boolean hasMenuKey = (deviceKeys & KEY_MASK_MENU) != 0;
+        final boolean hasAssistKey = (deviceKeys & KEY_MASK_ASSIST) != 0;
+        final boolean hasAppSwitchKey = (deviceKeys & KEY_MASK_APP_SWITCH) != 0;
 
         //Do we have a NavigationBar enabled in the running system?
         IWindowManager windowManager = IWindowManager.Stub.asInterface(ServiceManager.getService(Context.WINDOW_SERVICE));
@@ -69,7 +84,7 @@ public class NavigationBar extends SettingsPreferenceFragment implements OnPrefe
         mHomeKeyEnabled = (CheckBoxPreference) prefSet.findPreference(KEY_HOME_ENABLED);
 
         mNavigationBarShow.setChecked((Settings.System.getInt(getActivity().getApplicationContext().getContentResolver(),
-                Settings.System.NAVIGATION_BAR_SHOW, 0) == 1));
+                Settings.System.NAVIGATION_BAR_SHOW, hasHomeKey ? 0 : 1) == 1));
         if (mNavigationBarShow.isChecked()) {
             enableKeysPrefs();
         } else {
