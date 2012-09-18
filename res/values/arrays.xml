@@ -1481,4 +1481,29 @@
     </string-array>
 
     <!-- **** CYANOGENMOD EDITS END **** -->
+    <!-- DPI Settings. -->
+    <string-array name="screen_density_entries">
+        <item>Use default</item>
+        <item>160</item>
+        <item>213</item>
+        <item>240</item>
+        <item>320</item>
+        <item>480</item>
+        </string-array>
+
+    <!-- Do not translate. -->
+    <string-array name="screen_density_values" translatable="false">
+        <!-- Do not translate. -->
+        <item>0</item>
+        <!-- Do not translate. -->
+        <item>160</item>
+        <!-- Do not translate. -->
+        <item>213</item>
+        <!-- Do not translate. -->
+        <item>240</item>
+        <!-- Do not translate. -->
+        <item>320</item>
+        <!-- Do not translate. -->
+        <item>480</item>
+        </string-array>
 </resources>

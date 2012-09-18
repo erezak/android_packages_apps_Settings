@@ -17,6 +17,7 @@
 package com.android.settings;
 
 import static android.provider.Settings.System.SCREEN_OFF_TIMEOUT;
+import static android.provider.Settings.System.SCREEN_DENSITY_OVERRIDE;
 
 import android.app.ActivityManagerNative;
 import android.app.admin.DevicePolicyManager;
@@ -28,6 +29,7 @@ import android.database.ContentObserver;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.os.Handler;
+import android.os.SystemProperties;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -35,21 +37,32 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.internal.view.RotationPolicy;
 import com.android.settings.DreamSettings;
 import com.android.settings.cyanogenmod.DisplayRotation;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class DisplaySettings extends SettingsPreferenceFragment implements
-        Preference.OnPreferenceChangeListener {
+Preference.OnPreferenceChangeListener {
     private static final String TAG = "DisplaySettings";
 
     /** If there is no setting in the provider, use this. */
     private static final int FALLBACK_SCREEN_TIMEOUT_VALUE = 30000;
 
     private static final String KEY_AUTOMATIC_BACKLIGHT = "backlight_widget";
+    private static final String KEY_SCREEN_DENSITY = "screen_density_override";
     private static final String KEY_SCREEN_TIMEOUT = "screen_timeout";
     private static final String KEY_ACCELEROMETER = "accelerometer";
     private static final String KEY_FONT_SIZE = "font_size";
@@ -83,6 +96,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
 
     private final Configuration mCurConfig = new Configuration();
 
+    private ListPreference mScreenDensityPreference;
     private ListPreference mScreenTimeoutPreference;
     private Preference mScreenSaverPreference;
     private PreferenceScreen mDisplayRotationPreference;
@@ -125,9 +139,15 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
                         com.android.internal.R.bool.config_enableDreams) == false) {
             getPreferenceScreen().removePreference(mScreenSaverPreference);
         }
-        
+
         mDisplayRotationPreference = (PreferenceScreen) findPreference(KEY_DISPLAY_ROTATION);
         mLockScreenRotation = (CheckBoxPreference) findPreference(KEY_LOCKSCREEN_ROTATION);
+        mScreenDensityPreference = (ListPreference) findPreference(KEY_SCREEN_DENSITY);
+        final long currentDensity = Settings.System.getLong(resolver, SCREEN_DENSITY_OVERRIDE,
+                0);
+        mScreenDensityPreference.setValue(String.valueOf(currentDensity));
+        mScreenDensityPreference.setOnPreferenceChangeListener(this);
+        updateDensityPreferenceDescription(currentDensity);
         mScreenTimeoutPreference = (ListPreference) findPreference(KEY_SCREEN_TIMEOUT);
         final long currentTimeout = Settings.System.getLong(resolver, SCREEN_OFF_TIMEOUT,
                 FALLBACK_SCREEN_TIMEOUT_VALUE);
@@ -163,7 +183,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             }
         }
 
-/**
+        /**
         mElectronBeamAnimationOn = (CheckBoxPreference) findPreference(KEY_ELECTRON_BEAM_ANIMATION_ON);
         mElectronBeamAnimationOff = (CheckBoxPreference) findPreference(KEY_ELECTRON_BEAM_ANIMATION_OFF);
         mElectronBeamAnimationOn.setChecked(Settings.System.getInt(resolver,
@@ -189,7 +209,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
               !getResources().getBoolean(com.android.internal.R.bool.config_screenOffAnimation)) {
             getPreferenceScreen().removePreference((PreferenceCategory) findPreference(KEY_ELECTRON_BEAM_CATEGORY_ANIMATION));
         }
-*/
+         */
         mVolumeWake = (CheckBoxPreference) findPreference(KEY_VOLUME_WAKE);
         if (mVolumeWake != null) {
             if (!getResources().getBoolean(R.bool.config_show_volumeRockerWake)) {
@@ -279,10 +299,32 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         preference.setSummary(summary);
     }
 
+    private void updateDensityPreferenceDescription(long currentDensity) {
+        ListPreference preference = mScreenDensityPreference;
+        String summary;
+        if (currentDensity < 0) {
+            // Unsupported value
+            summary = "";
+        } else {
+            final CharSequence[] entries = preference.getEntries();
+            final CharSequence[] values = preference.getEntryValues();
+            int best = 0;
+            for (int i = 0; i < values.length; i++) {
+                long density = Long.parseLong(values[i].toString());
+                if (currentDensity >= density) {
+                    best = i;
+                }
+            }
+            summary = preference.getContext().getString(R.string.pref_screen_density_override_summary,
+                    entries[best]);
+        }
+        preference.setSummary(summary);
+    }
+
     private void disableUnusableTimeouts(ListPreference screenTimeoutPreference) {
         final DevicePolicyManager dpm =
                 (DevicePolicyManager) getActivity().getSystemService(
-                Context.DEVICE_POLICY_SERVICE);
+                        Context.DEVICE_POLICY_SERVICE);
         final long maxTimeout = dpm != null ? dpm.getMaximumTimeToLock(null) : 0;
         if (maxTimeout == 0) {
             return; // policy not enforced
@@ -367,9 +409,9 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
 
     private void updateScreenSaverSummary() {
         mScreenSaverPreference.setSummary(
-            DreamSettings.isScreenSaverEnabled(mScreenSaverPreference.getContext())
+                DreamSettings.isScreenSaverEnabled(mScreenSaverPreference.getContext())
                 ? R.string.screensaver_settings_summary_on
-                : R.string.screensaver_settings_summary_off);
+                        : R.string.screensaver_settings_summary_off);
     }
 
     private void updateAccelerometerRotationCheckbox() {
@@ -423,6 +465,31 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
                 updateTimeoutPreferenceDescription(value);
             } catch (NumberFormatException e) {
                 Log.e(TAG, "could not persist screen timeout setting", e);
+            }
+        }
+        if (KEY_SCREEN_DENSITY.equals(key)) {
+            int value = Integer.parseInt((String) objValue);
+            try {
+                Settings.System.putInt(getContentResolver(), SCREEN_DENSITY_OVERRIDE, value);
+                updateDensityPreferenceDescription(value);
+                if (value == 0) { //No override
+                    File densFile = new File("/data/misc/dens.s");
+                    densFile.delete();
+                } else {
+                    FileOutputStream densFileStream = new FileOutputStream("/data/misc/dens.s");
+                    densFileStream.write(((String) objValue).getBytes());
+                    densFileStream.flush();
+                    densFileStream.close();
+                }
+                Toast.makeText(getActivity(), R.string.screen_density_reboot_message, Toast.LENGTH_LONG).show();
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "could not persist screen density setting", e);
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
         }
         if (KEY_FONT_SIZE.equals(key)) {

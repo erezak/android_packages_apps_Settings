@@ -4868,6 +4868,11 @@
 
     <string name="ok">OK</string>
 
+    <!--  Density override -->
+    <string name="pref_screen_density_override_title">Screen Density (DPI)</string>
+    <string name="pref_screen_density_override_summary">Screen DPI override set to <xliff:g id="density_override_description">%1$s</xliff:g></string>
+    <string name="screen_density_reboot_message">Please reboot to apply density change</string>
+
     <!-- Development settings: title for the field that shows the "App ID" development identifier
          for this device. [CHAR LIMIT=40] -->
     <string name="verifier_device_identifier">Development device ID</string>
