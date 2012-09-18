@@ -18,6 +18,8 @@ package com.android.settings.cyanogenmod;
 
 import com.android.settings.R;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Config;
@@ -78,6 +80,12 @@ public class ChangeLog extends AlertActivity {
             public void onPageFinished(WebView view, String url) {
                 // Change from 'Loading...' to the real title
                 mAlert.setTitle(getString(R.string.changelog_dialog));
+            }
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
+                return true;
             }
         });
 
