@@ -988,23 +988,6 @@
 
         <activity android:name="ChooseLockPatternTutorial" android:exported="false"/>
 
-        <!-- Anonymous Statistics -->
-        <receiver android:name=".cmstats.ReportingServiceManager"
-            android:enabled="true"
-            android:exported="false"
-            android:label="ReportingServiceManager">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-            </intent-filter>
-        </receiver>
-
-        <service android:label="ReportingService"
-            android:enabled="true"
-            android:exported="false"
-            android:name=".cmstats.ReportingService">
-        </service>
-
         <!-- Runs in the phone process since it needs access to the Phone object -->
         <activity android:name=".deviceinfo.Status"
                 android:label="@string/device_status_activity_title"
@@ -1264,13 +1247,6 @@
                 <category android:name="android.intent.category.DEVELOPMENT_PREFERENCE" />
             </intent-filter>
         </activity>
-
-        <!-- DeviceInfo adds the user's requested build to stats upload.  -->
-        <receiver android:name=".DeviceInfo$StatsReportReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.STATISTICS_REPORT" />
-            </intent-filter>
-        </receiver>
 
         <activity android:name="BatteryInfo" android:label="@string/battery_info_label"
                   android:parentActivityName="Settings">
