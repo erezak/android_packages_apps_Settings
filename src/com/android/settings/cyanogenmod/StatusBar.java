@@ -23,6 +23,7 @@ import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
+import android.preference.SeekBarPreference;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.util.Log;
@@ -30,6 +31,7 @@ import android.util.Log;
 import com.android.settings.R;
 import com.android.settings.SettingsPreferenceFragment;
 import com.android.settings.Utils;
+import com.android.settings.erez.SeekBarWithSummaryPreference;
 
 public class StatusBar extends SettingsPreferenceFragment implements OnPreferenceChangeListener {
 
@@ -41,6 +43,7 @@ public class StatusBar extends SettingsPreferenceFragment implements OnPreferenc
     private static final String COMBINED_BAR_AUTO_HIDE = "combined_bar_auto_hide";
     private static final String STATUS_BAR_NOTIF_COUNT = "status_bar_notif_count";
     private static final String STATUS_BAR_CATEGORY_GENERAL = "status_bar_general";
+    private static final String STATUS_BAR_TRANSPARENCY_PREF_KEY = "status_bar_transparency_percent";
 
     private ListPreference mStatusBarClockStyle;
     private ListPreference mStatusBarAmPm;
@@ -50,6 +53,7 @@ public class StatusBar extends SettingsPreferenceFragment implements OnPreferenc
     private CheckBoxPreference mCombinedBarAutoHide;
     private CheckBoxPreference mStatusBarNotifCount;
     private PreferenceCategory mPrefCategoryGeneral;
+    private SeekBarWithSummaryPreference mPrefStatusBarTransparency;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -65,6 +69,7 @@ public class StatusBar extends SettingsPreferenceFragment implements OnPreferenc
         mStatusBarBattery = (ListPreference) prefSet.findPreference(STATUS_BAR_BATTERY);
         mCombinedBarAutoHide = (CheckBoxPreference) prefSet.findPreference(COMBINED_BAR_AUTO_HIDE);
         mStatusBarCmSignal = (ListPreference) prefSet.findPreference(STATUS_BAR_SIGNAL);
+        mPrefStatusBarTransparency = (SeekBarWithSummaryPreference) prefSet.findPreference(STATUS_BAR_TRANSPARENCY_PREF_KEY);
 
         mStatusBarBrightnessControl.setChecked((Settings.System.getInt(getActivity().getApplicationContext().getContentResolver(),
                 Settings.System.STATUS_BAR_BRIGHTNESS_CONTROL, 0) == 1));
@@ -120,6 +125,14 @@ public class StatusBar extends SettingsPreferenceFragment implements OnPreferenc
 
         mPrefCategoryGeneral = (PreferenceCategory) findPreference(STATUS_BAR_CATEGORY_GENERAL);
 
+        int statusBarTransparencyLevel = Settings.System.getInt(getActivity().getApplicationContext().getContentResolver(),
+                Settings.System.STATUS_BAR_TRANSPARENCY_PERCENT,
+                Settings.System.STATUS_BAR_TRANSPARENCY_PERCENT_DEFAULT);
+        mPrefStatusBarTransparency.setMax(100);
+        mPrefStatusBarTransparency.setProgress(statusBarTransparencyLevel);
+        updateTransparencyPreferenceDescription(statusBarTransparencyLevel);
+        mPrefStatusBarTransparency.setOnPreferenceChangeListener(this);
+
         if (Utils.isTablet(getActivity())) {
             mPrefCategoryGeneral.removePreference(mStatusBarBrightnessControl);
             mPrefCategoryGeneral.removePreference(mStatusBarCmSignal);
@@ -157,6 +170,12 @@ public class StatusBar extends SettingsPreferenceFragment implements OnPreferenc
                     Settings.System.STATUS_BAR_SIGNAL_TEXT, signalStyle);
             mStatusBarCmSignal.setSummary(mStatusBarCmSignal.getEntries()[index]);
             return true;
+        } else if (preference == mPrefStatusBarTransparency) {
+            int transparencyLevel = ((Integer) newValue).intValue();
+            Settings.System.putInt(getActivity().getApplicationContext().getContentResolver(),
+                    Settings.System.STATUS_BAR_TRANSPARENCY_PERCENT, transparencyLevel);
+            updateTransparencyPreferenceDescription(transparencyLevel);
+            return true;
         }
         return false;
     }
@@ -181,5 +200,18 @@ public class StatusBar extends SettingsPreferenceFragment implements OnPreferenc
             return true;
         }
         return false;
+    }
+    private void updateTransparencyPreferenceDescription(long currentValue) {
+        SeekBarPreference preference = mPrefStatusBarTransparency;
+        String summary;
+        if (currentValue < 0) {
+            // Unsupported value
+            summary = "";
+        } else {
+            summary = preference.getContext().getString(
+                    R.string.status_bar_transparency_percent_summary,
+                    currentValue);
+        }
+        preference.setSummary(summary);
     }
 }
