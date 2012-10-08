@@ -60,6 +60,13 @@
     <!-- INTERFACE -->
     <header android:title="@string/header_category_interface" />
 
+    <!-- Sapir -->
+    <header
+        android:id="@+id/sapir_settings"
+        android:title="@string/sapir_settings_title"
+        android:fragment="com.android.settings.erez.SapirSettings"
+        android:icon="@drawable/ic_settings_advanced" />
+
     <!-- Launcher -->
     <header
         android:id="@+id/launcher_settings"

@@ -4287,6 +4287,13 @@
     <!-- Settings main menu category heading. Interface (Launcher, Themes, System). [CHAR LIMIT=40] -->
     <string name="header_category_interface">INTERFACE</string>
 
+    <!-- Sapir settings  -->
+    <string name="sapir_settings_title">Sapir</string>
+
+    <string name="force_tablet_mode_title">Force table mode</string>
+    <string name ="force_tablet_mode_summary">Allow showing combined system bar on any device</string>
+    <string name="force_tablet_mode_reboot_message">Please reboot to apply tablet mode change</string>
+    
     <!-- Launcher settings  -->
     <string name="launcher_settings_title">Launcher</string>
 
