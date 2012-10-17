@@ -94,6 +94,11 @@ public class StatusBar extends SettingsPreferenceFragment implements OnPreferenc
 
         int statusBarClockStyle = Settings.System.getInt(getActivity().getApplicationContext().getContentResolver(),
                 Settings.System.STATUS_BAR_CLOCK_STYLE, 1);
+        boolean forceTabletUi = Settings.System.getInt(getActivity().getApplicationContext().getContentResolver(),
+                Settings.System.FORCE_TABLET_UI, 0) == 1;
+        if (forceTabletUi) {
+            mStatusBarClockStyle.setEnabled(false);
+        }
         mStatusBarClockStyle.setValue(String.valueOf(statusBarClockStyle));
         mStatusBarClockStyle.setSummary(mStatusBarClockStyle.getEntry());
         mStatusBarClockStyle.setOnPreferenceChangeListener(this);
