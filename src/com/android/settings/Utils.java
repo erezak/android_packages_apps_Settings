@@ -43,6 +43,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ListView;
 import android.widget.TabWidget;
+import android.provider.Settings;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -53,6 +54,7 @@ import java.net.InetAddress;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.io.*;
 
 public class Utils {
 
@@ -501,11 +503,16 @@ public class Utils {
             WindowManager wm = (WindowManager)con.getSystemService(Context.WINDOW_SERVICE);
             android.view.Display display = wm.getDefaultDisplay();
             int shortSize = Math.min(display.getRawHeight(), display.getRawWidth());
-            int shortSizeDp = shortSize * DisplayMetrics.DENSITY_DEFAULT / DisplayMetrics.DENSITY_DEVICE;
-            if (shortSizeDp < 600) {
+            int shortSizeDp = shortSize * DisplayMetrics.DENSITY_DEFAULT /
+                DisplayMetrics.DENSITY_DEVICE;
+
+            boolean forceTabletUi = (Settings.System.getInt(con.getContentResolver(),
+                Settings.System.FORCE_TABLET_UI, 0) != 0);
+
+            if (shortSizeDp < 600 && (!forceTabletUi)) {
                 // 0-599dp: "phone" UI with a separate status & navigation bar
                 mDeviceType =  DEVICE_PHONE;
-            } else if (shortSizeDp < 720) {
+            } else if (shortSizeDp < 720 && (!forceTabletUi)) {
                 // 600-719dp: "phone" UI with modifications for larger screens
                 mDeviceType = DEVICE_HYBRID;
             } else {
@@ -528,4 +535,39 @@ public class Utils {
         return getScreenType(con) == DEVICE_TABLET;
     }
 
+    // Ported with thanks from the JellyBeer ROM
+    // https://github.com/beerbong/android_packages_apps_Settings/commit/4d6185f145fef5386c22c3f4d2a8f57a0c245c5a
+
+    public static void restartUI() {
+        execute(new String[] {"pkill -TERM -f com.android.systemui"}, 0);
+        execute(new String[] {"pkill -TERM -f com.android.settings"}, 0);
+    }
+
+    public static boolean execute(String[] command, int wait) {
+        if(wait!=0){
+            try {
+                Thread.sleep(wait);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        Process proc;
+        try {
+            proc = Runtime.getRuntime().exec("su");
+            DataOutputStream os = new DataOutputStream(proc.getOutputStream());
+            for (String tmpCmd : command) {
+                os.writeBytes(tmpCmd+"\n");
+            }
+            os.flush();
+            os.close();	
+            proc.waitFor();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
