@@ -4290,7 +4290,7 @@
     <!-- Sapir settings  -->
     <string name="sapir_settings_title">Sapir</string>
 
-    <string name="force_tablet_mode_title">Force table mode</string>
+    <string name="force_tablet_mode_title">Force tablet mode</string>
     <string name ="force_tablet_mode_summary">Allow showing combined system bar on any device</string>
     <string name="force_tablet_mode_reboot_message">Please reboot to apply tablet mode change</string>
     
